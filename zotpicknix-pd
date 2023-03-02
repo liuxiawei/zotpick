@@ -1,19 +1,14 @@
 #!/bin/bash
-## tdotool and xclip us need
+## tdotool and xcel  need
+## libnotify-bin need if you want notify
 ## INSTALLATION ##
 # See README.md for details  
-# The default text editor is set to Scrivener. Edit Preferences below if you use a different program.
 
 ## PREFERENCES ##
 CAYW_URL="http://localhost:23119/better-bibtex/cayw?format=pandoc" # Edit the URL as needed for a different citation marker format.
 
-textEditor="Obsidian|Zettlr" # Replace "Scrivener" with the name of your preferred text editor (as it appears in the program window)
 #widTE=$(xdotool search --onlyvisible $textEditor 2>/dev/null | head -1)
 widTE=$(xdotool getactivewindow|head -1)
-if ! [ $widTE ]; then
-		notify-send "Please open $textEditor and try again, or edit the Zotpicknix script file to specify a different text editor."
-		exit 3;
-fi
 
 BBT_status=$(/usr/bin/curl 'http://localhost:23119/better-bibtex/cayw?probe=probe' 2>/dev/null)
 
@@ -26,7 +21,7 @@ if [ "$BBT_status" == "ready" ] 2>/dev/null; then
 			for i in {1..100};
 			do
 				zte=$(xdotool search --onlyvisible "zotero"|sort|tail -1)
-				if [[ ! "${old[@]}" =~ $zte ]] ; then
+				if [[ ! "${zte_old[@]}" =~ $zte ]] ; then
 					xdotool windowactivate $zte
 					break
 				else
@@ -36,8 +31,11 @@ if [ "$BBT_status" == "ready" ] 2>/dev/null; then
 			done
 		}&
 		citation=$(/usr/bin/curl $CAYW_URL 2>/dev/null)
-		echo "$citation" | xsel --input --clipboard  
-		xdotool windowactivate $widTE && xdotool key ctrl+v space --window $widTE --delay 40  # Long delay minimises xdotool errors
+		if [ -z "$citation" ]; then
+			exit
+		fi
+		echo " $citation " | tr -d "\n"| xsel --input --clipboard  
+		xdotool windowactivate $widTE && xdotool key ctrl+v space $widTE --delay 40  # Long delay minimises xdotool errors
 		echo "$old_copy" | xsel --input --clipboard  
 		#xdotool windowactivate $widTE && xdotool type --window $widTE --delay 40 "$citation" # Long delay minimises xdotool errors
 		exit 0;
