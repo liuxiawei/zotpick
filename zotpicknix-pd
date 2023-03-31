@@ -13,43 +13,43 @@ widTE=$(xdotool getactivewindow|head -1)
 BBT_status=$(/usr/bin/curl 'http://localhost:23119/better-bibtex/cayw?probe=probe' 2>/dev/null)
 
 if [ "$BBT_status" == "ready" ] 2>/dev/null; then
-		notify-send "Accessing Zotero picker..."
-		old_copy=`xsel --output --clipboard`
-		zte_old=$(xdotool search --onlyvisible "zotero")
-		#xdotool windowactivate $zte --delay 100
-		{
-			for i in {1..100};
-			do
-				zte=$(xdotool search --onlyvisible "zotero"|sort|tail -1)
-				if [[ ! "${zte_old[@]}" =~ $zte ]] ; then
-					xdotool windowactivate $zte
-					break
-				else
-					sleep 0.3s
-				fi
+                notify-send "Accessing Zotero picker..."
+                old_copy=`xsel --output --clipboard`
+                zte_old=$(xdotool search --onlyvisible "zotero")
+                #xdotool windowactivate $zte --delay 100
+                {
+                        for i in {1..100};
+                        do
+                                zte=$(xdotool search --onlyvisible "zotero"|sort|tail -1)
+                                if [[ ! "${zte_old[@]}" =~ $zte ]] ; then
+                                        xdotool windowactivate $zte
+                                        break
+                                else
+                                        sleep 0.3s
+                                fi
 
-			done
-		}&
-		citation=$(/usr/bin/curl $CAYW_URL 2>/dev/null)
-		if [ -z "$citation" ]; then
-			exit
-		fi
-		echo " $citation " | tr -d "\n"| xsel --input --clipboard  
-		xdotool windowactivate $widTE && xdotool key ctrl+v space $widTE --delay 40  # Long delay minimises xdotool errors
-		echo "$old_copy" | xsel --input --clipboard  
-		#xdotool windowactivate $widTE && xdotool type --window $widTE --delay 40 "$citation" # Long delay minimises xdotool errors
-		exit 0;
+                        done
+                }&
+                citation=$(/usr/bin/curl $CAYW_URL 2>/dev/null)
+                if [ -z "$citation" ]; then
+                        exit
+                fi
+                echo " [$citation] " | tr -d "\n"| xsel --input --clipboard  
+                xdotool windowactivate $widTE && xdotool key ctrl+v space $widTE --delay 40  # Long delay minimises xdotool errors
+                sleep 0.8s
+                echo "$old_copy" | xsel --input --clipboard  
+                #xdotool windowactivate $widTE && xdotool type --window $widTE --delay 40 "$citation" # Long delay minimises xdotool errors
+                exit 0;
 
 elif [ -z "$BBT_status" ]; then
-		notify-send "Please launch Zotero with the Better BibTeX plugin. If Zotero is running, check 'Enable export by HTTP' in BBT and restart Zotero."
-		xdotool windowactivate $widTE
-		exit 4;
+                notify-send "Please launch Zotero with the Better BibTeX plugin. If Zotero is running, check 'Enable export by HTTP' in BBT and restart Zotero."
+                xdotool windowactivate $widTE
+                exit 4;
 
 elif [ "$BBT_status" == "No endpoint found" ] 2>/dev/null; then
-		notify-send "Better BibTeX cannot find your library. Ensure only one Zotero instance is open. If so, reinstall Better BibTeX."
+                notify-send "Better BibTeX cannot find your library. Ensure only one Zotero instance is open. If so, reinstall Better BibTeX."
 else
-		notify-send "Unknown error in Better BibTex. Please restart Zotero and try again."
+                notify-send "Unknown error in Better BibTex. Please restart Zotero and try again."
 fi
 xdotool windowactivate $widTE
 exit 5;
-
